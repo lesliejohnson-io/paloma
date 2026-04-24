@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paloma AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+
+:root {
+  --bg-canvas:   #102A43;
+  --bg-base:     #243B53;
+  --bg-surface:  #334E68;
+  --bg-elevated: #3E4C59;
+  --border:      #627D98;
+  --purple-600:  #7C5CBF;
+  --purple-500:  #9B7DD4;
+  --purple-300:  #B8A2E3;
+  --blue-700:    #0F6EB3;
+  --blue-400:    #47A3F3;
+  --text-primary:#F0F4F8;
+  --text-muted:  #9FB3C8;
+  --text-subtle: #627D98;
+  --text-accent: #47A3F3;
+  --courage-act: #9B7DD4;
+  --belief-shift:#1992D4;
+  --witnessed:   #D85A30;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: transparent;
+  font-family: 'Lato', sans-serif;
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/* ── PHONE FRAME ── */
+.phone-frame { position: relative; width: 320px; flex-shrink: 0; margin: 20px auto; }
+.phone-img   { width: 100%; display: block; pointer-events: none; position: relative; z-index: 10; }
+.phone-screen {
+  position: absolute;
+  top: 1.6%; left: 4.3%; right: 4.1%; bottom: 1.5%;
+  border-radius: 36px;
+  overflow: hidden;
+  background: var(--bg-base);
+  z-index: 1;
+}
+
+/* ── SCREEN SYSTEM ── */
+.screen { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity 0.5s ease; overflow: hidden; }
+.screen.active { opacity: 1; pointer-events: auto; }
+
+/* ── EVIDENCE FILE ── */
+.ev-wrap { height: 100%; overflow-y: auto; }
+.ev-header { padding: 44px 16px 0; background: var(--bg-base); position: sticky; top: 0; z-index: 10; }
+.ev-label { font-size: 8px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--text-accent); margin-bottom: 3px; }
+.ev-count { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 400; color: var(--text-primary); margin-bottom: 7px; }
+.ev-count span { font-size: 13px; font-weight: 300; color: var(--text-muted); }
+.belief-badge { display: inline-flex; align-items: center; gap: 5px; background: rgba(155,125,212,0.1); border: 1px solid rgba(155,125,212,0.3); border-radius: 20px; padding: 3px 9px; margin-bottom: 10px; }
+.belief-dot { width: 5px; height: 5px; background: var(--purple-500); border-radius: 50%; }
+.belief-lbl { font-size: 7px; letter-spacing: 1px; color: var(--text-subtle); text-transform: uppercase; }
+.belief-txt { font-family: 'Playfair Display', serif; font-size: 10px; font-style: italic; color: var(--purple-300); }
+.filter-row { display: flex; gap: 5px; padding-bottom: 8px; overflow-x: auto; scrollbar-width: none; }
+.filter-row::-webkit-scrollbar { display: none; }
+.fpill { flex-shrink: 0; padding: 3px 9px; border-radius: 20px; border: 1px solid var(--border); background: transparent; font-family: 'Lato', sans-serif; font-size: 9px; color: var(--text-muted); white-space: nowrap; }
+.fpill.active { background: var(--purple-500); border-color: var(--purple-500); color: #fff; font-weight: 700; }
+.entry-list { padding: 4px 12px 100px; display: flex; flex-direction: column; gap: 7px; }
+.entry-card { background: var(--bg-surface); border-radius: 8px; overflow: hidden; border: 1px solid rgba(98,125,152,0.2); cursor: pointer; flex-shrink: 0; }
+.entry-card-inner { display: flex; }
+.entry-stripe { width: 3px; flex-shrink: 0; }
+.entry-card-body { padding: 9px 11px; flex: 1; min-width: 0; }
+.entry-text { font-size: 11px; line-height: 1.5; color: var(--text-primary); margin-bottom: 5px; }
+.entry-footer { display: flex; align-items: center; justify-content: space-between; }
+.entry-date { font-size: 8px; color: var(--text-subtle); }
+.entry-tag { font-size: 7px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 2px 5px; border-radius: 3px; }
+.tag-courage   { color: var(--courage-act);  background: rgba(155,125,212,0.1); }
+.tag-belief    { color: var(--blue-400);     background: rgba(25,146,212,0.1); }
+.tag-witnessed { color: var(--witnessed);    background: rgba(216,90,48,0.1); }
+.expand-hint { font-size: 8px; color: var(--text-subtle); margin-top: 4px; display: flex; align-items: center; gap: 3px; }
+.expand-hint svg { width: 7px; height: 7px; transition: transform 0.3s; }
+.entry-card.open .expand-hint svg { transform: rotate(180deg); }
+.paloma-reflection { overflow: hidden; max-height: 0; transition: max-height 0.35s ease; }
+.paloma-reflection.open { max-height: 120px; }
+.refl-inner { padding: 7px 11px 9px; display: flex; gap: 7px; border-top: 1px solid rgba(98,125,152,0.2); }
+.refl-bar { width: 2px; background: var(--purple-500); opacity: 0.5; border-radius: 2px; flex-shrink: 0; }
+.refl-text { font-size: 10px; font-style: italic; color: var(--text-muted); line-height: 1.6; }
+
+/* ── FAB ── */
+.fab { position: absolute; bottom: 20px; right: 16px; width: 48px; height: 48px; background: var(--purple-500); border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(155,125,212,0.45); cursor: pointer; z-index: 20; transition: transform 0.15s, background 0.2s; }
+.fab svg { width: 20px; height: 20px; fill: none; stroke: #fff; stroke-width: 2.5; stroke-linecap: round; }
+.fab.tap-anim { animation: tapBtn 0.25s ease; }
+@keyframes tapBtn { 0%{transform:scale(1)} 40%{transform:scale(0.88)} 100%{transform:scale(1)} }
+
+/* ── TAP CURSOR ── */
+.tap-cursor { position: absolute; width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.18); border: 2px solid rgba(255,255,255,0.65); pointer-events: none; z-index: 200; opacity: 0; transform: translate(-50%,-50%); }
+.tap-cursor.flash { animation: tapFlash 0.45s ease forwards; }
+@keyframes tapFlash { 0%{opacity:0.85;transform:translate(-50%,-50%) scale(0.6)} 50%{opacity:0.6;transform:translate(-50%,-50%) scale(1.1)} 100%{opacity:0;transform:translate(-50%,-50%) scale(1.5)} }
+
+/* ── BOTTOM SHEET ── */
+.sheet-overlay { position: absolute; inset: 0; background: rgba(16,42,67,0.72); z-index: 50; opacity: 0; pointer-events: none; transition: opacity 0.3s; display: flex; align-items: flex-end; }
+.sheet-overlay.open { opacity: 1; pointer-events: auto; }
+.bottom-sheet { background: var(--bg-base); border-radius: 16px 16px 0 0; width: 100%; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.34,1.04,0.64,1); max-height: 88%; overflow-y: auto; }
+.sheet-overlay.open .bottom-sheet { transform: translateY(0); }
+.sheet-handle { width: 32px; height: 3px; background: var(--border); border-radius: 2px; margin: 10px auto 0; }
+.sheet-title { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 400; color: var(--text-primary); padding: 12px 18px 2px; }
+.sheet-sub { font-size: 11px; color: var(--text-muted); padding: 0 18px 14px; }
+.sheet-body { padding: 0 18px 24px; display: flex; flex-direction: column; gap: 12px; }
+.field-group { display: flex; flex-direction: column; gap: 4px; }
+.field-label { font-size: 8px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text-subtle); }
+.field-label span { font-weight: 400; letter-spacing: 0; text-transform: none; font-size: 9px; color: var(--text-subtle); }
+textarea { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; padding: 10px; font-family: 'Lato', sans-serif; font-size: 11px; color: var(--text-primary); outline: none; width: 100%; resize: none; height: 56px; transition: border-color 0.2s; }
+textarea:focus { border-color: var(--purple-500); }
+textarea.sm { height: 40px; }
+textarea::placeholder { color: var(--text-subtle); }
+.btn-primary { background: var(--purple-500); color: #fff; border: none; border-radius: 6px; padding: 12px 18px; font-family: 'Lato', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; width: 100%; transition: background 0.2s; }
+.btn-primary:hover { background: var(--purple-600); }
+.btn-primary.tap-anim { animation: tapBtn 0.25s ease; }
+
+/* ── PALOMA RESPONSE SCREEN ── */
+.resp-screen { background: var(--bg-canvas); display: flex; flex-direction: column; align-items: center; padding: 40px 22px 28px; }
+.resp-mark { font-size: 8px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--text-accent); align-self: flex-start; }
+.resp-text { flex: 1; display: flex; align-items: center; width: 100%; padding: 20px 0; }
+.resp-text p { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 300; font-style: italic; line-height: 1.7; color: var(--text-primary); min-height: 80px; }
+.cursor-blink { display: inline-block; width: 1.5px; height: 1em; background: var(--purple-300); margin-left: 2px; vertical-align: text-bottom; animation: blink 0.9s step-end infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+.breath-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 22px; }
+.breath-ring-container { position: relative; width: 76px; height: 76px; display: flex; align-items: center; justify-content: center; }
+.breath-ring { position: absolute; border-radius: 50%; border: 1.5px solid var(--purple-500); opacity: 0; }
+.ring-1 { width:100%; height:100%; animation: breathe 4s ease-in-out infinite; }
+.ring-2 { width: 70%; height: 70%; animation: breathe 4s ease-in-out infinite 0.4s; }
+.ring-3 { width: 44%; height: 44%; animation: breathe 4s ease-in-out infinite 0.8s; }
+.ring-core { width: 13px; height: 13px; background: var(--purple-500); border-radius: 50%; opacity: 0.4; animation: corePulse 4s ease-in-out infinite; }
+@keyframes breathe { 0%{transform:scale(0.85);opacity:0.07} 50%{transform:scale(1.1);opacity:0.28} 100%{transform:scale(0.85);opacity:0.07} }
+@keyframes corePulse { 0%,100%{opacity:0.3;transform:scale(0.9)} 50%{opacity:0.65;transform:scale(1.1)} }
+.breath-label { font-size: 10px; color: var(--text-muted); letter-spacing: 0.5px; }
+.felt-btn { opacity: 0; pointer-events: none; transition: opacity 0.6s ease; width: 100%; }
+.felt-btn.visible { opacity: 1; pointer-events: auto; }
+
+/* ── CELEBRATION SCREEN ── */
+.cel-screen { background: var(--bg-canvas); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 36px 24px; }
+.cel-label { font-size: 8px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--text-accent); margin-bottom: 18px; opacity: 0; transform: translateY(8px); }
+.cel-label.ani { animation: fadeUp 0.5s 0.1s forwards; }
+.cel-divider { width: 32px; height: 1px; background: var(--border); opacity: 0; margin: 0 auto 18px; }
+.cel-divider.ani { animation: fadeUp 0.5s 0.3s forwards; }
+.cel-main { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 300; line-height: 1.35; color: var(--text-primary); margin-bottom: 22px; opacity: 0; transform: translateY(8px); }
+.cel-main.ani { animation: fadeUp 0.5s 0.45s forwards; }
+.cel-count { font-family: 'Playfair Display', serif; font-size: 52px; font-weight: 400; color: var(--purple-300); line-height: 1; margin-bottom: 4px; opacity: 0; transform: translateY(8px); }
+.cel-count.ani { animation: fadeUp 0.5s 0.6s forwards; }
+.cel-count-lbl { font-size: 12px; color: var(--text-muted); margin-bottom: 20px; opacity: 0; transform: translateY(8px); }
+.cel-count-lbl.ani { animation: fadeUp 0.5s 0.72s forwards; }
+.cel-belief { font-size: 10px; color: var(--text-subtle); margin-bottom: 32px; opacity: 0; transform: translateY(8px); }
+.cel-belief.ani { animation: fadeUp 0.5s 0.84s forwards; }
+.cel-belief em { font-style: italic; color: var(--text-muted); }
+.cel-cta { opacity: 0; transform: translateY(8px); width: 100%; }
+.cel-cta.ani { animation: fadeUp 0.5s 1s forwards; }
+@keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+.btn-secondary { background: transparent; color: var(--blue-400); border: 1px solid var(--blue-700); border-radius: 6px; padding: 12px 18px; font-family: 'Lato', sans-serif; font-size: 12px; cursor: pointer; width: 100%; transition: background 0.2s; }
+.btn-secondary.tap-anim { animation: tapBtn 0.25s ease; }
+
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="phone-screen">
+
+    <!-- EVIDENCE FILE -->
+    <div class="screen active" id="screen-evidence">
+      <div class="ev-wrap">
+        <div class="ev-header">
+          <div class="ev-label">Your evidence file</div>
+          <div class="ev-count" id="ev-count">7 <span>acts of courage</span></div>
+          <div class="belief-badge">
+            <div class="belief-dot"></div>
+            <div class="belief-lbl">Working against</div>
+            <div class="belief-txt">&ldquo;I don&rsquo;t belong here.&rdquo;</div>
+          </div>
+          <div class="filter-row">
+            <button class="fpill active">All</button>
+            <button class="fpill">Courage Acts</button>
+            <button class="fpill">Belief Shifts</button>
+            <button class="fpill">Witnessed</button>
+          </div>
+        </div>
+        <div class="entry-list" id="entry-list"></div>
+      </div>
+      <button class="fab" id="fab-btn">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </div>
+
+    <!-- RESPONSE SCREEN -->
+    <div class="screen resp-screen" id="screen-response">
+      <div class="resp-mark">paloma.ai</div>
+      <div class="resp-text"><p id="response-text-el"><span class="cursor-blink"></span></p></div>
+      <div class="breath-wrap">
+        <div class="breath-ring-container">
+          <div class="breath-ring ring-1"></div>
+          <div class="breath-ring ring-2"></div>
+          <div class="breath-ring ring-3"></div>
+          <div class="ring-core"></div>
+        </div>
+        <div class="breath-label">Take a moment. Let that land.</div>
+      </div>
+      <button class="btn-primary felt-btn" id="felt-btn">I felt it</button>
+    </div>
+
+    <!-- CELEBRATION SCREEN -->
+    <div class="screen cel-screen" id="screen-celebration">
+      <div class="cel-label" id="cel-label">Added to your evidence file.</div>
+      <div class="cel-divider" id="cel-divider"></div>
+      <div class="cel-main" id="cel-main">One more act of courage.</div>
+      <div class="cel-count" id="cel-count">8</div>
+      <div class="cel-count-lbl" id="cel-count-lbl">acts of courage</div>
+      <div class="cel-belief" id="cel-belief">Countering: <em>&ldquo;I don&rsquo;t belong here.&rdquo;</em></div>
+      <div class="cel-cta" id="cel-cta"><button class="btn-secondary" id="back-btn">Back to my evidence file</button></div>
+    </div>
+
+    <!-- SHEET OVERLAY -->
+    <div class="sheet-overlay" id="sheet-overlay">
+      <div class="bottom-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">Log a courage act</div>
+        <div class="sheet-sub">What happened? Paloma will witness it.</div>
+        <div class="sheet-body">
+          <div class="field-group">
+            <div class="field-label">What happened? <span>(required)</span></div>
+            <textarea id="log-what" placeholder="Describe what you did..."></textarea>
+          </div>
+          <div class="field-group">
+            <div class="field-label">What did it cost you? <span>(optional)</span></div>
+            <textarea id="log-cost" class="sm" placeholder="Fear? Energy? Comfort?"></textarea>
+          </div>
+          <div class="field-group">
+            <div class="field-label">What does it say about you? <span>(optional)</span></div>
+            <textarea id="log-meaning" class="sm" placeholder="What does it mean that you did this?"></textarea>
+          </div>
+          <button class="btn-primary" id="tell-paloma-btn">Tell Paloma</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tap-cursor" id="tap-cursor"></div>
+  </div><!-- /phone-screen -->
+
+  <img class="phone-img" src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCANRAaEDASIAAhEBAxEB/8QAHQABAQADAAMBAQAAAAAAAAAAAAgDBQcBBgkEAv/EAFYQAQAABAIDCQ0CCQkGBgMAAAABAgMEBQYHCBESNDZzdHaxsrQTFyExNzhBUVZhcZazIkIUFVSBhZGh0uEWIzJSU2Jyk9EkMzVkgsFjZnWjpPCSosL/xAAWAQEBAQAAAAAAAAAAAAAAAAAAAQP/xAAbEQEBAQEAAwEAAAAAAAAAAAAAEQECAyExQf/aAAwDAQACEQMRAD8AjIAAGW1t693c07a1o1K9erNCSnTpyxmmnmj4oQhDwxiDE2eW8v45mXEpMNy/hF9il5P4qNrQmqTfGMIQ8EPfFQejnVzscKtLfHNL17Xsu6SwqUMvWU0I3dWHjh3WbxUoe7x+PwwjDY9jzVp1yxkfDZ8vZGw+zwi2k+z+CYNCEs00YbfDVuPHNN74bY+sHoeXdVvOM9KS5znjmBZQoTQhN3K6uIVrmMPdSp7f1Rmg9zsNBmhXBaXdcazLmjME0vjmtqVOzoRj/wBe2b9riuZdMWbsVrTxta9PDpJptu2jDdVI/GebbHb8Nj0bEcWxTEandL/ELq6njHbtq1Zpo/tiCrY22rdgX2IZLw24nl+/fZhqVJvzyyzbHiOe9Atj4KGRciQ2f2tpVrx/XGCR4xjGO2MdrwQVvHS3oZpeCnkbR5+bAJo9MHjvy6IYeLI2j/8ANl3+CSQFbd+fRH7DZA+XP4PHfn0R+w2QPlz+CSgFa9+fRH7DZA+XP4Hfn0R+w2QPlz+CSgFa9+fRH7DZA+XP4Hfn0R+w2QPlz+CSgFa9+fRH7DZA+XP4Hfn0R+w2QPlz+CSgFa9+fRH7DZB+XP4P6jpk0TwjsjkDI+2H/leb91JD9ML++hCEIXlxCEPF/ORBVvfl0TewORvleb9078uib2ByN8rzfupT/GF/+W3H+ZE/GF/+W3H+ZEFWd+XRN7A5H+V5v3Tvy6JvYHI3yvN+6lP8YX/5bcf5kT8YX/5bcf5kQVZ35dE3sDkb5Xm/dO/Lom9gcjfK837qU/xhf/ltx/mRPxhf/ltx/mRBVnfl0TewORvleb9078uib2ByN8rzfupT/GF/+W3H+ZE/GF/+W3H+ZEFWd+XRN7A5G+V5v3SbTNokljGE2RchSxh44Ry3sjD82xKf4wv/AMtuP8yL80YxjGMYxjGMfHGIK078+iP2GyB8uQ/0O/Poj9hsgfLkP9ElAK178+iP2GyB8ufwO/Poj9hsgfLn8ElAK178+iP2GyB8ufwO/Poj9hsgfLn8ElAK178+iP2GyB8ufwO/Poj9hsgfLn8ElAK279Gi/ucZJcCyvTpR2whQkwXZShCP3dzufF7ve8w0u6Gqkdk+RtHmz35fmh0QSQArmGkDQRe+CvkbIPh/s7CrRj+uEHndat2NfzdTI+C0p5vvWePVaEfzSxjsSKEFZ3ehfQZjtKM+E4tmrAZ4/f3VK9oS/q+1H9b1HHdVrHqss1bImb8BzTL45baap+B3U3wkqeD/APaDgdliF9ZVe62d5cW8/wDWp1Iyx/Y90y/pZzhhU8vdr2XEaUIw2y3Uu6j4P78Nk37Qev5xyfmnJ2IfgGaMAxDCLj7stzRjLCf3yzeKaHvhGLRKtyRrEYXjmHQy/nC1truxqw3M9ljEkLi2m/w1Iw2yR9W3wQ9bBnnV+yvnG3qYtomvfxdik0vdI5evq8JqdaHj/wBmrR8fuhN+uEASyP243hWJYHitxhWMWNxYX9tPGnWt69OMk8k0PRGEX4gAAAAAeYQjGOyENsQftwHCcSx3GLXB8Is617f3dWFKhQpS7Zp5o+KEFdZPytlTV9y/UxTEq9lf527n/teITwhUo4Xth/uaEPvVfRGb/ttfm0P5UsdCmjyOb8dhTo5xxe0jWlnqQ2xwmymh44Q9FWf9fih4/BGb9J2d77OOMzVZpp6dhSmj+D0Izbdm3xzTeuaPpj/pBBuNKGlfG83XdxSt7i4trGrNHd7qeMa1x76k3v8A6vi+Oza5zGMYx2xeBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAe6aPNIuOZRuaclOrPdYfCbdTW088YbmP8AWkm8ck3vh+eEXpYCzLr+ROsJlGjb4xd0rTH6Unc8Ox6MkIVaU/ooXUPvSx/rfnhHx7ZQz5lPHckZpvMt5jsp7PELSfZNLHwyzy+ieWP3pYw8MIvOSM0YjlTGpMQsZ91JH7NejNH7FWT0yx/19CrcXwrB9YLRdb2ltUp/ypw+hNUwK8qRhCerCWG2eyqx9f8AVjHxeCPi/pT4I0GW8trizu61pdUZ6FxQnmp1ac8Nk0k0I7IwjD0RhFiUAAHa9UnIlnmTO1zmrH6HdMu5Xpy3tzJND7Nevt/maPh8Eds0Nuz1Q2elxRYlnSo6KNWjCLKpJLTxDEbeOO4jCOzbNPU+zb04+6ENztgDk+tDpBvcxZmuMK/CIzfzndb2MsfBGp92nD+7JDwbPX8IOJs17c1ry7rXVxPNPVrTxnnmj44xjHbGLCAAAAAAAAAAAAAAAD+6UPDGIEJI+mJ3P3sgDH3P3nc/eyAMfc/edz97IAxTSRh4fG/lnYZobJowB4AB5lhGMfBB/Uac3ui/VY0YVJ5ZY7dmyM0djZXVth01vQ/Bak01WelGap/NxlhJND7u2P8AS+LXjw9d871n4m7mNAMteXZGEfWxMlAAAAAAAAAAAAAAHStAedrjK+a6NrPdTUbS6qy7mfbs7jWhH7FSHq8Pgj7o7fRBzV5ljGWMIwjsjDwwBRmuNk+3uJsM0r4NbS0rfGpvwXGKVOXZCjfyw8M2z0QqSw2/GG30pyWLoar0tK2hrF8kXs0s9xiljNJQjNGEYyX9vDd05vduoQhtj6fEj2vSqUK9ShWkjJUpzRknljDwwjCOyMAfwAD2XRZl6bNmkjLuW4Q2y4hiNGhP7pIzw3UfzS7Yu8a7GY5a+Jz4ZbTQko1LuNOSSWH2YUqEsJJYQ90Y7Y/meo6kljJX07WuJ1ZIT08Hw67v5tvihGWlGWEf1zwev6yN/Uu89U6E88Zu4Wsu34zxjPHrA5gAAAAAAAAAAAAAAAA/qSOyPh8T+QGcYYRjDxRibqb1xBmGHdTeuJupvXEGYYd1N64m6m9cQZYxhCG2LFGO2O14AAAfptK24jDZHZNL4ve/fcYhVq21KhNuZZKUsZZNnohGO2P/ANi04058nXObmb9PW/cZK0+7m8Hih4mMGYAAAAAAAAAAAAAAAA7jqk5lqYPmutQhPH+bnp3lOX1xkmhCaH55Zo/qev61eXKeWNPOZrO2khLa3VxC/t9zDwbivLCp4PdCM00PzNFoTvJrPSPhm5m2QrzTUI+/dSxh/wB3Vtd20hWxPIuY5ZfDf4BLb1Jv609CeMsY/qmgCdQAUXqQ0oU77SBicYeGhlyajLH1Rq1JYf8A8uTaaa0a2knFdsdvc55acPhLLCDsuphT3OS9J116YWljT2/4qs7hulGpGrpDxyeMdv8AtlSH6og9aAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABuMk15rbN+E15Y7IyXdObb/1QUbre0IVtDej692bZrW+v7WMfdNGWaEP2JlwaeNPF7OpDxy15I/tgqbWhlhW1ccCr/2OZ6kkPhNQmiaJOABTmpx4NGek+Puw2H/uzuA6Qo7rPONx/wCdq9aKg9UPcSaKM7xk2QnqXtrLX2eOMkIRjJuvVDdRjs9+1PWf+G2Mx/5yp1og0YAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM1jHZe0I/8AiS9KrdY6O61X8OjH0Zrh2aZKVlvyhxkvSrHT7GWfVmjLV2bmTGqE9LdeirGSMI7P7252+D1AkgAFOanXkw0nfHDPq1E/5+4bY1y2r1oqA1OvJhpO+OG/VqJ/z/w2xrltXrRBowAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZbPfdHjJelVusV5rdhzsk7LOlKz33R4yXpVbrFea5Yc7JeyzAk0AFOanXkw0n/HDPq1E/5/4bY1y2r1oqA1OvJhpP8Ajhn1aif8/cNsa5bV60QaMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGWz33R4yXpVbrFea5Yc7JeyzJSs990eMl6VW6xXmt2HOyXsswJNABTmp15MNJ/xwz6tRP+fuG2Nctq9aKgNTryYaT/jhn1aif8/cNsa5bV60QaMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGWz33R4yXpVbrE+a5Yc7JOyzJSs990eMl6VW6xPmt2HOyXsswJNABTep15MNJ/xwz6tRwDP3DbGuW1etF3/U68mWk79G/VqOAZ+4bY1y2r1og0YAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMtnvujxkvSq3WJ81yw52S9lmSlZ78o8ZL0qs1ivNdw/nZL2WYEnAAtHQ1k7BMk5P0i4Tg2aZMwzdxw78NqS2s1CFtcS16ss9HZGMd1sjD+lDwR2+5JWf+G2Nctq9aK87mxkscOzpGSWEPwjC8OrR98Y3dwgzP3DbGuW1etERowBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGaz35R4yXpVXrFea5h/OyXssyVLLflHjJelVesV5rmH87JeyzAk4AH0dzB/w3NP/oeF9ruHz+z9w2xrltXrRXfUxezxbDs7ws7mjX/A8Ow61rdznhNuJ5buvtlm2eKMPUhDP3DbGuW1etERowBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGay35R4yXpVXrFea7h/OyXssyVLLflHjJelVesV5ruH87JeyzAk4AFk6C8+4hpAyNpCxLEsLwmwuLW2wy3j+L7fuUK/89UmjUqeGO6qRjGO2b0+BKWfuG2M8tq9aLv2p35MdJ3xw36tRwHP3DbGuW1etEGjAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABmst+UeMl6VV6xXmu4fzsl7LMlSy35R4yXpVXrFea7h/OyXsswJOABTWp35MdJ/6N+rUcBz9w2xrltXrRd+1O/JjpP/Rv1ajgOfuG2M8tq9aINGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADNZb8o8ZL0qq1ivNdw/nZL2WZKtlvyjxkvSqrWJ813D+dkvZZgSeAC39E1tluy0U41a5fwupY15ct4FVxSealGWW5uau2rGpLGP9KG5nhDb64Rh6EeZ+4bYzy2r1orgytLCGiiaMIQhGOSMubff4ZkP5+4bYzy2r1oiNGAKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAzWW/KPGS9KqtYnzXcP52S9lmSrZb8o8ZL0qq1ifNdw/nZL2WYEngAv3K/kmjzIy50zoez9w2xnltXrRXDlfyTR5kZc6Z0PZ+4bYzy2r1oiNGAKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAzWW/KPGS9KqtYnzXcP52S9lmSrZb8o8ZL0qq1ifNdw/nZL2WYEngAv3K/kmjzHy50zoez9w2xnltXrRXDlfyTR5kZc6Z0PZ+4bYzy2r1oiNGAKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAzWW/KPGS9KqtYjzXcP52S9lmSrZb8o8ZL0rG0n5TxzOur5h+B5etZbm+jmSe47nNUhJDcU7OaaaO2Pg8QIzABfuWPJNHmRlzpnQ9n7hrjPLKnWitHR/bVqWifELupjUmI07vKeXpqNKWWWEbOWSEacaUYwjHbHdSzTeHZH7Wz0Iuz9w1xnltTrRBowAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZrLflHjJelfmW6OIXGUcoU8NxGpYVf5X7qpUpwhGM9KW1jGenHb6JpYRlj7ooDst+UeMl6X0M0dw3WXsqc5a0f/gzg+d4AKb1Poxjoq0mbYxj9vDfqTp+z9w1xnllTrRUBqfeSrSb/jw36k6f8/cNcZ5ZU60QaMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGay35R4yXpfQ3RzwfyrzlrdhnfPKy35R4yXpfQ3RzwfyrzlrdhnB87gAWjoTytgOV9EeYYYNis19cYngeC4hiVOaeWaNrXqzTT9y8Hi+zNLNsj4dkySM/cNcZ5ZU60VsZNsbS00V3dW2t6dKe6yblutXmll2RqT7Iy7qPrjslhD8yJ8/cNcZ5ZU60QaMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGay35R4yXpfQ3RzwfyrzlrdhnfPKy35R4yXpfQzRzwfyrzlrdhnB87wAX3lnySx5kZc6Z0PZ+4a4zyyp1orgyz5JY8yMudM6H8/cNcZ5ZU60RGjAFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZrLflHjJel9DNHP8AwDK3OWt2Gd887LflHjJel9DNHPB/K3OWt2GcHzvABfWWfJLHmRlzpnQ/n7hrjPLKnWiuDLPkljzIy50zofz9w1xnllTrRBowAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZrLflHjJel9DNHHB/KvOWv2Gd887LflHjJel9DNHH/AMrc5a3YZwfO8AF9Za8kseZGXOmdD2feGuM8sqdaK1MjwxjvVX1TE7ehStZso5chh09Opuo1aMJYwjNND7sd3u4bPVCEfSivPvDXGeWVOtEGkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABmst+UeMl6X0J0ezbnLuVI/+Z6sP/hTvntZb8o8ZL0r7yzRxerk/KccFo0Ktalm2NWv3apuJZLeW1j3abb64SbYwh6TRAA8bQFU6q+O4vjOirP9DFcQr3lPDrfC7Wzlqzbe40YVamySX1Sw9Scc+8NcZ5ZU60XfNT7yY6T/ANGfVqOB5+4a4zyyp1og0YAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM1lvyjxkvSrnTLjuMZd1cMPxLAsRuMPvP5URpd2oT7mbcT2k0JpdvqjDwRSNZb8o8ZL0qo1h/New/nZL2WYEogApjU+8mOk/wDRn1ajgefuGuM8sqdaLvmp95MdJ/6M+rUcCz7w1xnllTrRBpAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZrLflHjJelVGsP5r2H87JeyzJXst+UeMl6VUaw/mvYfzsl7LMCUQAUxqf+THSf+jPq1HAs+8NcZ5ZU60XfdT/yY6T/ANGfVqOBZ94a4zyyp1og0gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM1lvyjxkvSqjWH817D+dkvZZkr2W/KPGS9KqNYbzXrDnZL2WYEogApjU/8AJjpP/Rn1ajgWfeGuM8sqdaLvup/5MdJ/6M+rUcCz7w1xnllTrRBpAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZrLflHjJelU+sN5rthzsl7LMliy35Q4yXpVPrDea7Yc7JeyzAlIAFMan/kx0n/oz6tRwLPvDXGeWVOtF3zU/8mOk/wDRn1ajgefeGuM8sqdaINIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADNZb8o8ZL0qn1hvNdsOdkvZZksWW/KPGS9Kp9YXzXbDnZL2WYEpAApjVA8mGk/44Z9Wo4Fn3hpjHLKnWi77qgeS/Sf8cM+rUcCz7w0xjllTrRQaQBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABmst+UeMl6VT6wnmu2HOyXssyWLLflHjJelU+sJ5rtjzsl7LMCUgAUvqgeS/Sf8cM+rUcDz7w0xjllTrRd81QPJhpP+OGfVqOB584aYxyyp1og0gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM1lvyjxkvSqjWC81yz51y9lmSvZb8o8ZL0qn1gvNcsudcvZZgSkACl9UDyYaT/jhn1ajgefOGmMcsqdaLvmqB5MNJ/xwz6tRwPPnDTGOWVOtEGkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABmst+UeMl6VUawXmuWXOuXssyV7LflHjJelU+sF5rllzrl7LMCUgAUtqgeTDSf8cM+rUcEz5w0xjllTrRd71QfJhpP+OGfVqOCZ84aYxyyp1og0gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM1lvyjxkvSqfWC81yy51y9lmSxZb8o8ZL0qn1gvNcsudcvZZjRKQAKW1QfJhpP+OGfVqOCZ84aYxyyp1ou96oPkw0n/ABwz6tRwTPnDTGOWVOtEGkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABmst+UeMl6VT6wPmuWXOyXssyWLLflHjJelU+sD5rllzsl7LMCUgAUtqg+TDSf8cM+rUcEz5w0xjllTrRd71QfJhpP+OGfVqOCZ84aYxyyp1og0gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM1lvyjxkvSqfWB81yy52S9lmSxZb8o8ZL0qn1gfNcsudkvZZgSkACltUHyYaT/jhn1ajgmfOGmMcsqdaLveqD5MNJ/xwz6tRwTPnDTGOWVOtEGkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABmst+UeMl6VT6wPmuWXOyXssUsWW/KHGS9KptYDzXLLnZL2WIJTABS2qF5MNJ/xwz6tRwTPnDTGOWVOtF3vVC8mGk/44Z9Wo4JnzhpjHLKnWiDSAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAzWW/KPGS9KptYDzXLLnZL2WKWbLflHjJelU2sB5rllzsl7LEEpgApbVC8mGk/44Z9Wo4JnzhpjHLKnWi73qheTDSf8AHDPq1HBM+cNMY5ZU60QaQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGay35Q4yXpVNrAea5Zc7JeyxSzZb8ocZL0qm1gPNcsudkvZYglMAFK6oXkw0n/HDPq1HBc+cNMY5ZU60XetULyYaT/jhn1ajgufOGeMcsqdaINIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADNZb8ocZL0qm1gPNcsudkvZYpZst+UOMl6VTawHmu2XOyXssQSmACltULyYaT/AI4Z9Wo4JnzhnjHLKnWi71qh+S/Sf8cM+rUcFz5wzxjllTrRBpAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZrLflDjJelUusD5rtjzsl7LMlqy35Q4yXpVLrA+a7Y87JeyzAlQAFK6ofkv0n/ABwz6tRwXPnDPGOWVOtF3rVD8mGk/wCOGfVqOC584Z4xyyp1og0gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM1lvyhxkvSqXWA812x52S9lmS1Zb8ocZL0qk1gfNdsedsvZZgSqACldUPyYaT/jhn1ajgufOGeMcsqdaLvWqH5MNJ/wAcM+rUcFz5wzxjllTrRBpAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZrLflDjJelUmsD5rtjztl7LMluy35Q4yXpVJrA+a7Y87ZeyzAlUAFK6ofkw0n/HDPq1HBc+cM8Y5ZU60XetUPyX6T/jhn1ajgufOGeMcsqdaINIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADNZb8ocZL0qk1gfNdsedsvZZkt2W/KHGS9KpNYDzXbHnbL2WYEqgApXVE8l+k/44Z9Wo4LnvhnjHK6nWd61RPJfpP8Ajhn1ajgue+GeMcrqdYGkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABmst+UOMl6VR6wHmu2PO2XssyXLLflDjJelUesB5rtjztl7LMCVgAUrqieS/Sf8cM+rUcFz3wzxjldTrO86onkv0n/oz6tRwbPfDPGOV1OsDSAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAzWW/KHGS9Ko9YDzXbHnbL2WZLllvyhxkvSqPWA812x52y9lmBKwAKU1RPJfpP+OGfVqODZ74Z4xyup1nedUTyX6T/jhn1ajg2e+GeMcrqdYGkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABmst+UOMl6VR6wHmu2PO2XssyXLLflDjJelUen/zXbHnbL2WYErAApTVE8l+k/44Z9Wo4NnvhnjHK6nWd51RfJfpP+OGfVqODZ74Z4xyup1gaQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGay35Q4yXpVHp/812x52y9kmS5Zb8ocZL0qj0/+a7Y87ZeyTAlYAFKaovkv0n/HDPq1HBs98M8X5XU6zvOqL5L9J/xwz6tRwXPfDLF+V1OsDSgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAzWW/KHGS9KotP/AJrtjztl7LMl2y35Q4yXpVFp/wDNesedsvZJgSuACldVKO3RbnSFLbtlvLaNzuYfcjCMJN37t1utm307djgme+GWL7fyup0u9aomyOjDSfL7sNj/AO9O4Pn6GzOuMQ/5up0g0YAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM1jv2hxkvSqPTltl1cJu7be5RxijLR3UPs923G2O59G63G337Eu2ENt9Qh/4svSqLWB+zqv4fCPpzZ0WsQSsACj9T2pusk6TrX0xs7Grs/w14/6uJaS6fc8+4zL/wA3PH9rsOpbVhUu9IGGxj4a+Wp60sPXGlVkm/7uVaYKUaWkLE9sNm7mln/XLCIPUQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAfrwaSNTFrSSH3q0kP2wU3rKTQo6ueBUP7XNFaeHwlt9n/dOGTaMbjNeF0ZYbYz3UkNn51Ca2FaFHQ1o+s9uya6vsQuow90sZJIRBMgAO1alt5JS05WuF1Z4SU8Zw67w+bb4oxnpRjCH65YPXdYOynts50q88kZe720u3wemWMZY9D1rRhmCbKmkXL+Y5Y+DDsQo15/fJCeG6h+eG2DuGubl2S2xitf2ssJ6FO7jVpzyx+zGjXhCpJGHuh4gTYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD3DQ5aTXekHDtku2FGM1aP/AEyxi6nro3UKN/kXLss3hsMvS3FWX+rPXqTTxh+qEGk1V8t1cZzTUnlkjtrVKdnTm9UZ5obY/mhCLS60uYqWZtO2Zry2mlmtLW4hYW25j4O50JYU4bPdGMsY/nBzEABW9GrS0pat+DYjPPLUv8OoRwHEYx2bZZ6f2rapH3Rl2QjH3bEkOzaqOeLPL2crrKuP3Hcsu5opQsrmeaP2bevt20a3q+zNHZt9UfcDj15b1bS7q21eSMlWlPGSeWPjhGEWJ2PWUyFe5dzLcYhNbxkmhV7leywh4IVPRPD+7NDw7fz+mDjgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADzLCM00IQhtjHwQeHQ9B+TrjMuZ6NxNbT1ra3qywlkhLt7tVjH7EkPX4fH/GAO7aGqNPRfokxjPF5LLJXwmwmmt4TQhCM9/cQ3FKX37mEfDD0bNqSa1SpWrT1qs8Z6k80Zppo+OMY+GMVB63ea6Fn+LNFGEXMtWhg00brGatObbLWv54eGXb6YU5fs/GMfUnkAAB5hGMI7YeCLwArTRRmaz006Pv5K4zuK2csHs+4yyTx+1i9lLDwbPXWp/rjDw+GPhhO2kbJ15lTFpqcZZ6ljVmjGhWjDxw/qx9U0PTD/WDQ4FiuI4HjFri+EXlazv7SrCrQr0ptzNJNDxRhFWGVcx5X0/YFUsLyhZ2Gd+57bzDp4wp0cVjCH++oRj4JavpjL6fDHxbUEhDoOknRhjOVru4qUKFevZ0powqQmkjCrQ2eieXxw2evxfCMdjn8YRhHZFR4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB7fkPIOMZouJJ5aU1tY7rZNcTyx8Pukh96P/wBjsBrMm5av8zYvJY2cuySHhrVow+zTl9MYqixDEsK0B6M7fEaNOn/KjEKE0mAWdSEIz0pZobJ72rDqwj4/fCHg816eTNAeVaN3j1nSu8dqyQqYbgE00I1as/or3cfuyQ9Evjj4tnjS5nvNmO52zReZkzHez3mIXc+6nmj4JZIeiSWH3ZYQ8EIQQai7uK93dVbq6rT1q9aeNSrUnjtmnmjHbGMY+mMYsQKAAAADLa169rc07m2rVKNelNCenUpzRlmkmh4owjDxRYgFHZB1g8Pxm0oYJpcsq95NTlhToZispYfhlOGzZCFaXxVpff8A0vH44x2t9mjQdgGccNnzBkm+s8as5vtfhmDRhNNL4/BVt/6Uk3uh4vSlNs8uY/jmW8SkxLAMXvcLvJP6Na1rTU5v1wj4Ye5B7ZmHRPmjDas8LWlTv5JY7P5qOyeHujLHZHb8Hpt/hWJ2FTcXthc2823ZsqUowdqwHWczZ3OS3zrgGBZvpSwhL3a6t+4XWz3Vaez9sIvbrLTPoVxmnCTFsvZqy9PH7tvVpXtCWP8A17JlEtxhGEdkYbHhV8KmrzjX26efMNt55vuX+AVaUfzzSwjB4jkPQpe+G3z7kCO3+1u6tGP6owKJRFW96bRRV8NPPWjmO31Y9s6WKfRDo82zRp4zlmtShGOyvSxaWalND+tCbb4vf7oglcVbHQ3ox2+DPGj3ZzhlO83ox9t9HvzDKUSkKt7zejH230e/MMp3m9GPtvo9+YZSiUhVveb0Y+2+j35hlO83ox9t9HvzDKUSkKt7zejH230e/MMp3m9GPtvo9+YZSiUhVveb0Y+2+j35hlO83ox9t9HvzDKUSkKt7zejH230e/MMp3m9GPtvo9+YZSiUhVveb0Y+2+j35hlO83ox9t9HvzDKUSkKt7zejH230e/MMp3m9GPtvo9+YZSiUhVveb0Y+2+j35hlO83ox9t9HvzDKCUhVveb0Y+2+j35hlO83ox9t9HvzDKUSkKt7zejH230e/MMp3m9GPtvo9+YZSiUhVveb0Y+2+j35hlO83ox9t9HvzDKUSkKt7zejH230e/MMp3m9GPtvo9+YZSiUhVveb0Y+2+j35hlO83ox9t9HvzDKUSkKt7zmjCHjzxo8+YZTvSaKaf9PPWjmHxx/b0AlIVd3vtC9n4a+fNHsNnj7nf1Ksf2QeY0dXvCIbutn/Bak0v3LLA61xGPwjGGwolm0w++vKnc7Wzr1pvVJTjF7dgei/NeJTSxrWkuH0o7Ns1zNuY+H+7/AEv2O43Wl3QbglOMuG4dmzH6kPuwkpWVCbpmh+p6tjWs5jFvCankTJuAZXh9y6nkje3cvwqVPBD/APEHsWSdX+ywnDoY/mqvb2WH0obqe/xieFtbS/4ZI/aqR9Xoj6mPOenbKuTKE+GaKbP8Z4rLL3OOYb6hCWnR9H+zUI+L3TTfqjBP2cc35ozhiEb/ADRj2IYtcfdmua0ZoSe6WXxSw90IQaMH7MbxXEsbxW4xXF764vr65njUrXFepGeeeaPpjGL8YAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/9k=" alt="iPhone">
+</div>
+
+<script>
+var entryCount = 7;
+var DEMO_ENTRY    = "I spoke up in the all-hands when I disagreed with the direction. I almost didn't.";
+var DEMO_RESPONSE = "You almost talked yourself out of it. You didn't. That gap — between almost and actually — that's where everything changes.";
+var DEMO_COST     = "I was afraid they'd think I was difficult.";
+var DEMO_MEANING  = 'I trust my own read on what matters.';
+
+var entries = [
+  {id:1,type:'courage_act',  text:"Sent the email I'd been drafting for two weeks. Hit send before I could talk myself out of it.", reflection:"You didn't wait until it was perfect. That's the thing you said you never do.", date:'3 days ago'},
+  {id:2,type:'belief_shift', text:"Realized I was waiting for permission to take up space in the meeting. Then I stopped waiting.", reflection:"Something shifted in how you see yourself in that room. That's not small.", date:'1 week ago'},
+  {id:3,type:'courage_act',  text:"Had the conversation with my manager I'd been avoiding for six weeks.", reflection:"Six weeks of avoiding and then you just did it. What does that tell you?", date:'2 weeks ago'},
+  {id:4,type:'witnessed',    text:"My colleague said she always feels heard when she talks to me. I almost dismissed it.", reflection:"You almost let that slide past. You didn't this time.", date:'3 weeks ago'},
+  {id:5,type:'courage_act',  text:"Spoke up in the team meeting. I almost didn't.", reflection:"Nobody looked at you like you didn't belong. Actually the opposite.", date:'1 month ago'}
+];
+var origEntries = entries.slice();
+
+var typeColors  = {courage_act:'var(--courage-act)', belief_shift:'var(--belief-shift)', witnessed:'var(--witnessed)'};
+var typeLabels  = {courage_act:'Courage Act', belief_shift:'Belief Shift', witnessed:'Witnessed Moment'};
+var typeClasses = {courage_act:'tag-courage', belief_shift:'tag-belief', witnessed:'tag-witnessed'};
+
+function renderEntries() {
+  var list = document.getElementById('entry-list');
+  list.innerHTML = '';
+  for (var i = 0; i < entries.length; i++) {
+    list.appendChild(buildCard(entries[i]));
+  }
+}
+
+function buildCard(e) {
+  var card = document.createElement('div');
+  card.className = 'entry-card';
+  card.innerHTML =
+    '<div class="entry-card-inner">' +
+      '<div class="entry-stripe" style="background:' + typeColors[e.type] + '"></div>' +
+      '<div class="entry-card-body">' +
+        '<div class="entry-text">' + e.text + '</div>' +
+        '<div class="entry-footer">' +
+          '<div class="entry-date">' + e.date + '</div>' +
+          '<span class="entry-tag ' + typeClasses[e.type] + '">' + typeLabels[e.type] + '</span>' +
+        '</div>' +
+        '<div class="expand-hint">' +
+          '<svg viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1.5l5 5 5-5"/></svg>' +
+          "<span>Paloma's reflection</span>" +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="paloma-reflection"><div class="refl-inner"><div class="refl-bar"></div><div class="refl-text">' + e.reflection + '</div></div></div>';
+  card.addEventListener('click', function() {
+    var isOpen = card.classList.toggle('open');
+    card.querySelector('.paloma-reflection').classList.toggle('open', isOpen);
+  });
+  return card;
+}
+
+function showScreen(id) {
+  var all = document.querySelectorAll('.screen');
+  for (var i = 0; i < all.length; i++) { all[i].classList.remove('active'); }
+  var el = document.getElementById(id);
+  if (el) { el.classList.add('active'); el.scrollTop = 0; }
+}
+
+// Tap cursor
+function animateTap(x, y, cb) {
+  var c = document.getElementById('tap-cursor');
+  c.style.left = x + 'px';
+  c.style.top  = y + 'px';
+  c.classList.remove('flash');
+  void c.offsetWidth;
+  c.classList.add('flash');
+  setTimeout(function() { c.classList.remove('flash'); if (cb) cb(); }, 450);
+}
+
+// Typewriter
+var twTimer = null;
+function typewriter(el, text, speed, cb) {
+  if (twTimer) clearTimeout(twTimer);
+  el.innerHTML = '';
+  var cursor = document.createElement('span');
+  cursor.className = 'cursor-blink';
+  var node = document.createTextNode('');
+  el.appendChild(node);
+  el.appendChild(cursor);
+  var i = 0;
+  function tick() {
+    if (i < text.length) {
+      node.textContent += text[i];
+      var ch = text[i]; i++;
+      var d = speed;
+      if (ch === '.' || ch === '!' || ch === '?') d = speed * 7;
+      else if (ch === ',') d = speed * 3;
+      else if (ch === '—') d = speed * 4;
+      twTimer = setTimeout(tick, d + Math.random() * 10);
+    } else {
+      cursor.style.display = 'none';
+      if (cb) cb();
+    }
+  }
+  tick();
+}
+
+// Fake-type into textarea
+function fakeType(el, text, cb) {
+  el.value = '';
+  var i = 0;
+  function tick() {
+    if (i < text.length) {
+      el.value += text[i++];
+      setTimeout(tick, 22 + Math.random() * 18);
+    } else {
+      if (cb) cb();
+    }
+  }
+  tick();
+}
+
+// Demo loop
+var demoTimers = [];
+function dt(fn, ms) { demoTimers.push(setTimeout(fn, ms)); }
+function clearDemo() { for (var i = 0; i < demoTimers.length; i++) clearTimeout(demoTimers[i]); demoTimers = []; }
+
+function resetCelAni() {
+  var ids = ['cel-label','cel-divider','cel-main','cel-count','cel-count-lbl','cel-belief','cel-cta'];
+  for (var i = 0; i < ids.length; i++) {
+    var el = document.getElementById(ids[i]);
+    el.classList.remove('ani');
+    void el.offsetWidth;
+  }
+}
+function triggerCelAni() {
+  var ids = ['cel-label','cel-divider','cel-main','cel-count','cel-count-lbl','cel-belief','cel-cta'];
+  for (var i = 0; i < ids.length; i++) {
+    document.getElementById(ids[i]).classList.add('ani');
+  }
+}
+
+function runDemo() {
+  clearDemo();
+
+  // reset
+  entryCount = 7;
+  entries = origEntries.slice();
+  renderEntries();
+  document.getElementById('ev-count').innerHTML = '7 <span>acts of courage</span>';
+  document.getElementById('sheet-overlay').classList.remove('open');
+  document.getElementById('felt-btn').classList.remove('visible');
+  document.getElementById('log-what').value = '';
+  document.getElementById('log-cost').value = '';
+  document.getElementById('log-meaning').value = '';
+  resetCelAni();
+  document.getElementById('cel-count').textContent = '8';
+  showScreen('screen-evidence');
+
+  var phone = document.querySelector('.phone-screen');
+
+  function tap(xPct, yPct, cb) {
+    var x = phone.offsetWidth  * xPct;
+    var y = phone.offsetHeight * yPct;
+    animateTap(x, y, cb);
+  }
+
+  // t=1.2s  tap FAB
+  dt(function() {
+    tap(0.84, 0.93, function() {
+      var fab = document.getElementById('fab-btn');
+      fab.classList.add('tap-anim');
+      setTimeout(function() { fab.classList.remove('tap-anim'); }, 300);
+      document.getElementById('sheet-overlay').classList.add('open');
+    });
+  }, 1200);
+
+  // t=2.4s  tap "what happened" field, start typing
+  dt(function() {
+    tap(0.5, 0.60, function() {
+      fakeType(document.getElementById('log-what'), DEMO_ENTRY, function() {
+        setTimeout(function() {
+          document.getElementById('log-cost').value    = DEMO_COST;
+          document.getElementById('log-meaning').value = DEMO_MEANING;
+        }, 300);
+      });
+    });
+  }, 2400);
+
+  // t=7.0s  tap "Tell Paloma"
+  dt(function() {
+    tap(0.5, 0.90, function() {
+      var btn = document.getElementById('tell-paloma-btn');
+      btn.classList.add('tap-anim');
+      setTimeout(function() {
+        btn.classList.remove('tap-anim');
+        document.getElementById('sheet-overlay').classList.remove('open');
+        document.getElementById('felt-btn').classList.remove('visible');
+        showScreen('screen-response');
+        var el = document.getElementById('response-text-el');
+        el.innerHTML = '<span class="cursor-blink"></span>';
+        setTimeout(function() {
+          typewriter(el, DEMO_RESPONSE, 30, function() {
+            // 5-second pause then reveal button
+            setTimeout(function() {
+              entryCount = 8;
+              entries.unshift({id: Date.now(), type:'courage_act', text: DEMO_ENTRY, reflection: DEMO_RESPONSE, date:'Just now'});
+              document.getElementById('felt-btn').classList.add('visible');
+            }, 5000);
+          });
+        }, 500);
+      }, 320);
+    });
+  }, 7000);
+
+  // DEMO_RESPONSE is ~120 chars. At avg ~35ms/char = ~4.2s streaming + 500ms delay + 5000ms pause = ~9.7s after t=7.0s
+  // "I felt it" tap at t = 7000 + 320 + 500 + 4200 + 5000 + 600 buffer = ~17620ms
+  dt(function() {
+    tap(0.5, 0.92, function() {
+      var btn = document.getElementById('felt-btn');
+      if (!btn.classList.contains('visible')) {
+        // not ready yet — retry in 500ms
+        setTimeout(function() {
+          btn.classList.add('tap-anim');
+          setTimeout(function() {
+            btn.classList.remove('tap-anim');
+            resetCelAni();
+            void document.getElementById('cel-label').offsetWidth;
+            document.getElementById('cel-count').textContent = entryCount;
+            triggerCelAni();
+            showScreen('screen-celebration');
+          }, 300);
+        }, 500);
+        return;
+      }
+      btn.classList.add('tap-anim');
+      setTimeout(function() {
+        btn.classList.remove('tap-anim');
+        resetCelAni();
+        void document.getElementById('cel-label').offsetWidth;
+        document.getElementById('cel-count').textContent = entryCount;
+        triggerCelAni();
+        showScreen('screen-celebration');
+      }, 300);
+    });
+  }, 17800);
+
+  // t=21s  tap "Back to my evidence file"
+  dt(function() {
+    tap(0.5, 0.86, function() {
+      var btn = document.getElementById('back-btn');
+      btn.classList.add('tap-anim');
+      setTimeout(function() {
+        btn.classList.remove('tap-anim');
+        document.getElementById('ev-count').innerHTML = entryCount + ' <span>acts of courage</span>';
+        renderEntries();
+        showScreen('screen-evidence');
+      }, 300);
+    });
+  }, 21500);
+
+  // t=26s  loop
+  dt(runDemo, 26000);
+}
+
+renderEntries();
+setTimeout(runDemo, 600);
+
+</script>
+</body>
+</html>
