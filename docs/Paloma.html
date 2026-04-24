@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Paloma — Evidence of courage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg-canvas:    #102A43;
+    --bg-base:      #243B53;
+    --bg-surface:   #334E68;
+    --bg-elevated:  #3E4C59;
+    --border:       #627D98;
+
+    --purple-900:   #240754;
+    --purple-800:   #421987;
+    --purple-700:   #653CAD;
+    --purple-600:   #7C5CBF;
+    --purple-500:   #9B7DD4;
+    --purple-300:   #B8A2E3;
+    --purple-50:    #EAE2F8;
+
+    --blue-900:     #003E6B;
+    --blue-800:     #0A558C;
+    --blue-700:     #0F6EB3;
+    --blue-500:     #1992D4;
+    --blue-400:     #47A3F3;
+    --blue-300:     #7CC4FA;
+    --blue-50:      #DCEEFB;
+
+    --text-primary: #F0F4F8;
+    --text-muted:   #9FB3C8;
+    --text-subtle:  #627D98;
+    --text-accent:  #47A3F3;
+
+    --courage-act:  #9B7DD4;
+    --belief-shift: #1992D4;
+    --witnessed:    #D85A30;
+
+    --serif: 'Playfair Display', Georgia, serif;
+    --sans:  'Lato', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg-canvas);
+    color: var(--text-primary);
+    font-family: var(--sans);
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  /* Desktop surround */
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background:
+      radial-gradient(1200px 600px at 30% -10%, rgba(101, 60, 173, 0.18), transparent 60%),
+      radial-gradient(900px 500px at 110% 110%, rgba(25, 146, 212, 0.12), transparent 60%),
+      var(--bg-canvas);
+    padding: 0;
+  }
+
+  .device {
+    position: relative;
+    width: 390px;
+    height: 100vh;
+    max-height: 844px;
+    background: var(--bg-canvas);
+    overflow: hidden;
+    box-shadow:
+      0 0 0 1px rgba(98, 125, 152, 0.25),
+      0 30px 80px rgba(0, 0, 0, 0.45),
+      0 10px 30px rgba(0, 0, 0, 0.35);
+    border-radius: 38px;
+  }
+  @media (max-width: 430px) {
+    body { padding: 0; }
+    .device { border-radius: 0; height: 100vh; max-height: none; box-shadow: none; }
+  }
+
+  /* Status bar */
+  .status-bar {
+    height: 44px;
+    padding: 0 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    flex-shrink: 0;
+  }
+  .status-bar .right { display: flex; gap: 5px; align-items: center; }
+  .status-bar svg { opacity: 0.9; }
+
+  .screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-canvas);
+    overflow: hidden;
+    opacity: 0;
+    transform: translateX(20px);
+    pointer-events: none;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  .screen.active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+  .screen.leave-left {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+
+  .scroll {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .scroll::-webkit-scrollbar { display: none; }
+
+  h1, h2, h3 { font-family: var(--serif); font-weight: 500; letter-spacing: -0.01em; }
+
+  /* --- Onboarding --- */
+  .onb {
+    padding: 0 28px 32px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .onb-top {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-top: 10px;
+  }
+  .onb-mark {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 44px;
+  }
+  .mark-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--purple-500);
+    box-shadow: 0 0 16px rgba(155, 125, 212, 0.6);
+  }
+  .mark-text {
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    color: var(--text-accent);
+    text-transform: lowercase;
+    font-weight: 400;
+  }
+
+  .onb-q {
+    font-family: var(--serif);
+    font-size: 32px;
+    line-height: 1.2;
+    color: var(--text-primary);
+    margin-bottom: 14px;
+    text-wrap: pretty;
+  }
+  .onb-sub {
+    font-size: 15px;
+    color: var(--text-muted);
+    margin-bottom: 34px;
+    max-width: 300px;
+  }
+
+  .field {
+    display: block;
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 12px 2px;
+    font-family: var(--sans);
+    font-size: 20px;
+    outline: none;
+    transition: border-color 0.2s ease;
+  }
+  .field::placeholder { color: var(--text-subtle); }
+  .field:focus { border-color: var(--purple-500); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px 22px;
+    border-radius: 14px;
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.2s ease, opacity 0.2s ease;
+    width: 100%;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn[disabled] { opacity: 0.35; cursor: default; }
+
+  .btn-purple { background: var(--purple-500); color: #1a0f2e; }
+  .btn-purple:hover:not([disabled]) { background: var(--purple-300); }
+  .btn-blue   { background: var(--blue-500);   color: #041426; }
+  .btn-blue:hover { background: var(--blue-400); }
+  .btn-ghost  { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
+
+  .onb-cta-wrap { padding-top: 20px; }
+
+  .progress {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    padding: 14px 0 2px;
+  }
+  .progress span {
+    width: 24px; height: 3px;
+    border-radius: 2px;
+    background: var(--bg-surface);
+  }
+  .progress span.on { background: var(--purple-500); }
+
+  /* Paloma reflection (onboarding 2) */
+  .reflection-card {
+    background: linear-gradient(180deg, rgba(66, 25, 135, 0.25), rgba(36, 59, 83, 0.25));
+    border: 1px solid rgba(155, 125, 212, 0.25);
+    border-radius: 18px;
+    padding: 18px 18px 20px;
+    margin-top: 26px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .reflection-card.show { opacity: 1; transform: translateY(0); }
+  .reflection-label {
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--purple-300);
+    margin-bottom: 8px;
+    font-weight: 700;
+  }
+  .reflection-body {
+    font-family: var(--serif);
+    font-size: 18px;
+    line-height: 1.45;
+    font-style: italic;
+    color: var(--text-primary);
+    min-height: 1.45em;
+  }
+
+  /* Onboarding 3 — first entry card */
+  .first-entry-wrap {
+    margin-top: 22px;
+    padding: 2px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(155,125,212,0.5), rgba(71, 163, 243, 0.12));
+  }
+
+  /* --- Evidence file --- */
+  .ef-header {
+    padding: 4px 24px 10px;
+  }
+  .ef-eyebrow {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-accent);
+    font-weight: 700;
+  }
+  .ef-title {
+    font-family: var(--serif);
+    font-size: 30px;
+    line-height: 1.15;
+    margin-top: 6px;
+    color: var(--text-primary);
+  }
+  .ef-count {
+    margin-top: 6px;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+  .ef-count b { color: var(--purple-300); font-weight: 700; }
+
+  .belief-row {
+    padding: 16px 24px 8px;
+  }
+  .belief-label {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-subtle);
+    margin-bottom: 8px;
+    font-weight: 700;
+  }
+  .belief-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1px solid rgba(216, 90, 48, 0.4);
+    background: rgba(216, 90, 48, 0.08);
+    border-radius: 999px;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 15px;
+    color: var(--text-primary);
+  }
+  .belief-pill::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--witnessed);
+    box-shadow: 0 0 10px rgba(216, 90, 48, 0.7);
+  }
+  .belief-strike { text-decoration: line-through; text-decoration-color: rgba(155, 125, 212, 0.4); }
+
+  .filter-row {
+    display: flex;
+    gap: 8px;
+    padding: 16px 24px 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .filter-row::-webkit-scrollbar { display: none; }
+  .filter {
+    flex-shrink: 0;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    font-size: 13px;
+    font-family: var(--sans);
+    font-weight: 400;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+  .filter.active {
+    background: var(--text-primary);
+    color: var(--bg-canvas);
+    border-color: var(--text-primary);
+    font-weight: 700;
+  }
+
+  .entry-list {
+    padding: 6px 24px 120px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .entry {
+    position: relative;
+    background: var(--bg-base);
+    border-radius: 14px;
+    padding: 16px 16px 16px 20px;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+  .entry:hover { background: #2a425b; }
+  .entry::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 14px; bottom: 14px;
+    width: 3px;
+    border-radius: 2px;
+    background: var(--courage-act);
+  }
+  .entry.type-belief-shift::before { background: var(--belief-shift); }
+  .entry.type-witnessed::before { background: var(--witnessed); }
+
+  .entry-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .entry-kind {
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--courage-act);
+  }
+  .entry.type-belief-shift .entry-kind { color: var(--blue-300); }
+  .entry.type-witnessed .entry-kind { color: var(--witnessed); }
+  .entry-date {
+    font-size: 12px;
+    color: var(--text-subtle);
+  }
+
+  .entry-body {
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--text-primary);
+  }
+
+  .reflection-toggle {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed rgba(98, 125, 152, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+  .reflection-toggle .chev {
+    width: 14px; height: 14px;
+    transition: transform 0.25s ease;
+    color: var(--text-subtle);
+  }
+  .entry.expanded .chev { transform: rotate(180deg); }
+
+  .entry-reflection {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, margin-top 0.3s ease, opacity 0.25s ease;
+    opacity: 0;
+  }
+  .entry.expanded .entry-reflection {
+    max-height: 300px;
+    margin-top: 12px;
+    opacity: 1;
+  }
+  .entry-reflection-inner {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--purple-50);
+    padding-left: 14px;
+    border-left: 2px solid rgba(155, 125, 212, 0.4);
+  }
+  .entry-reflection-by {
+    display: block;
+    font-family: var(--sans);
+    font-style: normal;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-subtle);
+    margin-top: 8px;
+    font-weight: 700;
+  }
+
+  /* FAB */
+  .fab {
+    position: absolute;
+    bottom: 26px;
+    right: 24px;
+    width: 58px; height: 58px;
+    border-radius: 50%;
+    background: var(--purple-500);
+    color: #1a0f2e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    font-size: 28px;
+    font-weight: 300;
+    font-family: var(--sans);
+    box-shadow:
+      0 12px 28px rgba(101, 60, 173, 0.5),
+      0 2px 6px rgba(0, 0, 0, 0.3);
+    transition: transform 0.15s ease, background 0.2s ease;
+    z-index: 5;
+  }
+  .fab:hover { background: var(--purple-300); }
+  .fab:active { transform: scale(0.95); }
+
+  /* --- Bottom sheet (courage log) --- */
+  .sheet-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(16, 42, 67, 0.6);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 50;
+  }
+  .sheet-backdrop.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .sheet {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    background: var(--bg-base);
+    border-radius: 26px 26px 0 0;
+    padding: 10px 24px 28px;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
+    z-index: 60;
+    box-shadow: 0 -20px 60px rgba(0,0,0,0.4);
+    max-height: 92%;
+    overflow-y: auto;
+  }
+  .sheet.show { transform: translateY(0); }
+  .sheet-grab {
+    width: 42px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 8px auto 14px;
+    opacity: 0.6;
+  }
+  .sheet h3 {
+    font-size: 24px;
+    margin-bottom: 4px;
+  }
+  .sheet p.help {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+  }
+
+  .field-group {
+    margin-bottom: 18px;
+  }
+  .field-label {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .field-opt {
+    font-size: 11px;
+    color: var(--text-subtle);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  textarea.field {
+    resize: none;
+    font-size: 16px;
+    min-height: 54px;
+    padding: 10px 2px;
+    line-height: 1.45;
+  }
+
+  /* Paloma response screen */
+  .pr {
+    padding: 56px 28px 28px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .pr-label {
+    font-size: 13px;
+    letter-spacing: 0.18em;
+    color: var(--text-accent);
+    margin-bottom: 28px;
+    text-transform: lowercase;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .pr-label .mark-dot { width: 8px; height: 8px; box-shadow: 0 0 12px rgba(155, 125, 212, 0.6); }
+
+  .pr-reflect {
+    font-family: var(--serif);
+    font-size: 26px;
+    line-height: 1.35;
+    color: var(--text-primary);
+    font-style: italic;
+    min-height: 5em;
+    text-wrap: pretty;
+  }
+  .pr-reflect .caret {
+    display: inline-block;
+    width: 2px;
+    height: 0.95em;
+    background: var(--purple-300);
+    margin-left: 3px;
+    vertical-align: -0.1em;
+    animation: blink 0.9s steps(2, end) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .pr-breath-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+  .pr-breath-wrap.show { opacity: 1; }
+  .breath-ring {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+  .breath-ring .core {
+    position: absolute;
+    inset: 46%;
+    border-radius: 50%;
+    background: var(--purple-500);
+    opacity: 0.95;
+  }
+  .breath-ring .ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(155, 125, 212, 0.8);
+    background: radial-gradient(circle, rgba(155, 125, 212, 0.25) 0%, rgba(155, 125, 212, 0) 70%);
+    animation: breathe 8s ease-in-out infinite;
+    transform-origin: center;
+  }
+  .breath-ring .ring.r2 { animation-delay: -2s; opacity: 0.6; }
+  @keyframes breathe {
+    0%   { transform: scale(0.45); opacity: 0.15; }
+    50%  { transform: scale(1);    opacity: 0.7;  }
+    100% { transform: scale(0.45); opacity: 0.15; }
+  }
+  .pr-hint {
+    font-size: 14px;
+    color: var(--text-muted);
+    text-align: center;
+    max-width: 260px;
+    font-family: var(--serif);
+    font-style: italic;
+  }
+
+  .pr-cta {
+    width: 100%;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+    pointer-events: none;
+    margin-top: 16px;
+  }
+  .pr-cta.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  /* Celebration */
+  .celebrate {
+    padding: 28px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .celebrate .halo {
+    position: absolute;
+    width: 480px; height: 480px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(155, 125, 212, 0.25), rgba(155, 125, 212, 0) 60%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.6);
+    opacity: 0;
+    animation: halo-in 1.4s ease forwards 0.1s;
+    pointer-events: none;
+  }
+  @keyframes halo-in {
+    to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  }
+  .celebrate-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-subtle);
+    margin-bottom: 18px;
+    font-weight: 700;
+    opacity: 0;
+    animation: fade-up 0.6s ease forwards 0.3s;
+  }
+  .celebrate h2 {
+    font-family: var(--serif);
+    font-size: 36px;
+    line-height: 1.15;
+    color: var(--text-primary);
+    max-width: 300px;
+    margin-bottom: 22px;
+    opacity: 0;
+    animation: fade-up 0.7s ease forwards 0.5s;
+  }
+  .celebrate .big-count {
+    font-family: var(--serif);
+    font-size: 22px;
+    color: var(--purple-300);
+    margin-bottom: 10px;
+    opacity: 0;
+    animation: fade-up 0.7s ease forwards 0.8s;
+  }
+  .celebrate .counter-beliefs {
+    font-size: 13px;
+    color: var(--text-muted);
+    max-width: 280px;
+    margin-bottom: 40px;
+    opacity: 0;
+    animation: fade-up 0.7s ease forwards 1s;
+    line-height: 1.6;
+  }
+  .celebrate .counter-beliefs span.belief {
+    color: var(--text-primary);
+    font-style: italic;
+    font-family: var(--serif);
+    font-size: 15px;
+  }
+  .celebrate .cta-wrap {
+    width: 100%;
+    max-width: 320px;
+    opacity: 0;
+    animation: fade-up 0.7s ease forwards 1.3s;
+  }
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Misc icon */
+  .back-btn {
+    position: absolute;
+    top: 54px; left: 16px;
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: 50%;
+  }
+  .back-btn:hover { background: rgba(255,255,255,0.05); color: var(--text-primary); }
+
+  /* Toast / tiny tweak panel style */
+  .device-label {
+    position: fixed;
+    left: 28px;
+    top: 28px;
+    font-size: 12px;
+    color: var(--text-subtle);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .device-label .mark-dot { width: 7px; height: 7px; }
+  @media (max-width: 900px) { .device-label { display: none; } }
+
+  .kbd-hint {
+    position: fixed;
+    right: 28px;
+    bottom: 24px;
+    font-size: 11px;
+    color: var(--text-subtle);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  @media (max-width: 900px) { .kbd-hint { display: none; } }
+
+  /* select none on some UI chrome */
+  .status-bar, .filter-row, .progress, .ef-eyebrow, .entry-kind, .entry-date { user-select: none; }
+</style>
+</head>
+<body>
+
+<div class="device-label">
+  <span class="mark-dot"></span>
+  Paloma · interactive prototype
+</div>
+<div class="kbd-hint">tap anywhere in the device</div>
+
+<div class="device" id="device">
+
+  <!-- ===== SCREEN 1a — Onboarding 1 ===== -->
+  <section class="screen active" data-screen="onb1">
+    <div class="status-bar"><span>9:41</span><span class="right"><svg width="16" height="10" viewBox="0 0 16 10" fill="currentColor"><rect x="0" y="2" width="2" height="6" rx="1"/><rect x="4" y="1" width="2" height="7" rx="1"/><rect x="8" y="0" width="2" height="8" rx="1"/><rect x="12" y="-1" width="2" height="10" rx="1"/></svg><svg width="22" height="10" viewBox="0 0 22 10" fill="none" stroke="currentColor"><rect x="0.5" y="0.5" width="18" height="9" rx="2"/><rect x="2" y="2" width="13" height="6" rx="1" fill="currentColor"/><rect x="20" y="3" width="1.5" height="4" rx="0.5" fill="currentColor"/></svg></span></div>
+    <div class="onb scroll">
+      <div class="onb-top">
+        <div class="onb-mark"><span class="mark-dot"></span><span class="mark-text">paloma.ai</span></div>
+        <h1 class="onb-q">What would you like me to call you?</h1>
+        <p class="onb-sub">Just a name. Nothing more.</p>
+        <input class="field" id="nameField" placeholder="Your name" autocomplete="off" />
+      </div>
+      <div class="onb-cta-wrap">
+        <button class="btn btn-purple" id="onb1Next" disabled>Continue</button>
+        <div class="progress"><span class="on"></span><span></span><span></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SCREEN 1b — Onboarding 2 ===== -->
+  <section class="screen" data-screen="onb2">
+    <div class="status-bar"><span>9:41</span><span class="right"><svg width="16" height="10" viewBox="0 0 16 10" fill="currentColor"><rect x="0" y="2" width="2" height="6" rx="1"/><rect x="4" y="1" width="2" height="7" rx="1"/><rect x="8" y="0" width="2" height="8" rx="1"/><rect x="12" y="-1" width="2" height="10" rx="1"/></svg><svg width="22" height="10" viewBox="0 0 22 10" fill="none" stroke="currentColor"><rect x="0.5" y="0.5" width="18" height="9" rx="2"/><rect x="2" y="2" width="13" height="6" rx="1" fill="currentColor"/><rect x="20" y="3" width="1.5" height="4" rx="0.5" fill="currentColor"/></svg></span></div>
+    <div class="onb scroll">
+      <div class="onb-top">
+        <div class="onb-mark"><span class="mark-dot"></span><span class="mark-text">paloma.ai</span></div>
+        <h1 class="onb-q" id="onb2Q">What will tell you this conversation has been helpful?</h1>
+        <p class="onb-sub">Not a goal. A signal. Something you'd notice.</p>
+        <input class="field" id="signalField" placeholder="When I notice…" autocomplete="off" />
+        <div class="reflection-card" id="reflectCard">
+          <div class="reflection-label">Paloma</div>
+          <div class="reflection-body" id="reflectBody"></div>
+        </div>
+      </div>
+      <div class="onb-cta-wrap">
+        <button class="btn btn-purple" id="onb2Next" disabled>Continue</button>
+        <div class="progress"><span class="on"></span><span class="on"></span><span></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SCREEN 1c — Onboarding 3 ===== -->
+  <section class="screen" data-screen="onb3">
+    <div class="status-bar"><span>9:41</span><span class="right"><svg width="16" height="10" viewBox="0 0 16 10" fill="currentColor"><rect x="0" y="2" width="2" height="6" rx="1"/><rect x="4" y="1" width="2" height="7" rx="1"/><rect x="8" y="0" width="2" height="8" rx="1"/><rect x="12" y="-1" width="2" height="10" rx="1"/></svg><svg width="22" height="10" viewBox="0 0 22 10" fill="none" stroke="currentColor"><rect x="0.5" y="0.5" width="18" height="9" rx="2"/><rect x="2" y="2" width="13" height="6" rx="1" fill="currentColor"/><rect x="20" y="3" width="1.5" height="4" rx="0.5" fill="currentColor"/></svg></span></div>
+    <div class="onb scroll">
+      <div class="onb-top">
+        <div class="onb-mark"><span class="mark-dot"></span><span class="mark-text">paloma.ai</span></div>
+        <h1 class="onb-q">Your evidence file has started.</h1>
+        <p class="onb-sub">Everything you log from here is saved. Not to grade you. To prove, over time, what's actually true about you.</p>
+
+        <div class="first-entry-wrap">
+          <div class="entry type-belief-shift expanded" style="cursor:default; background: var(--bg-base); border-radius: 16px;">
+            <div class="entry-meta">
+              <span class="entry-kind">Belief shift · First entry</span>
+              <span class="entry-date">Just now</span>
+            </div>
+            <div class="entry-body" id="firstEntryBody">You came here to notice when something has shifted.</div>
+            <div class="entry-reflection" style="max-height: 300px; margin-top: 12px; opacity: 1;">
+              <div class="entry-reflection-inner">
+                That's the first act. Showing up to look.
+                <span class="entry-reflection-by">— Paloma</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="onb-cta-wrap">
+        <button class="btn btn-purple" id="onb3Next">Enter my evidence file</button>
+        <div class="progress"><span class="on"></span><span class="on"></span><span class="on"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SCREEN 2 — Evidence file ===== -->
+  <section class="screen" data-screen="home">
+    <div class="status-bar"><span>9:41</span><span class="right"><svg width="16" height="10" viewBox="0 0 16 10" fill="currentColor"><rect x="0" y="2" width="2" height="6" rx="1"/><rect x="4" y="1" width="2" height="7" rx="1"/><rect x="8" y="0" width="2" height="8" rx="1"/><rect x="12" y="-1" width="2" height="10" rx="1"/></svg><svg width="22" height="10" viewBox="0 0 22 10" fill="none" stroke="currentColor"><rect x="0.5" y="0.5" width="18" height="9" rx="2"/><rect x="2" y="2" width="13" height="6" rx="1" fill="currentColor"/><rect x="20" y="3" width="1.5" height="4" rx="0.5" fill="currentColor"/></svg></span></div>
+    <div class="scroll">
+      <div class="ef-header">
+        <div class="ef-eyebrow"><span class="mark-dot"></span><span>paloma.ai</span></div>
+        <h1 class="ef-title">Your evidence file</h1>
+        <div class="ef-count"><b id="homeCount">7 acts of courage</b> · building since April</div>
+      </div>
+
+      <div class="belief-row">
+        <div class="belief-label">Belief we're working against</div>
+        <div class="belief-pill"><span class="belief-strike">I don't belong here.</span></div>
+      </div>
+
+      <div class="filter-row" id="filterRow">
+        <button class="filter active" data-filter="all">All</button>
+        <button class="filter" data-filter="courage-act">Courage acts</button>
+        <button class="filter" data-filter="belief-shift">Belief shifts</button>
+        <button class="filter" data-filter="witnessed">Witnessed</button>
+      </div>
+
+      <div class="entry-list" id="entryList"></div>
+    </div>
+
+    <button class="fab" id="openSheet" aria-label="Log an act of courage">+</button>
+  </section>
+
+  <!-- ===== SCREEN 3 — Paloma response ===== -->
+  <section class="screen" data-screen="response">
+    <div class="pr">
+      <div class="pr-label"><span class="mark-dot"></span> paloma.ai</div>
+      <div class="pr-reflect" id="reflectText"><span class="caret"></span></div>
+      <div class="pr-breath-wrap" id="breathWrap">
+        <div class="breath-ring">
+          <div class="ring"></div>
+          <div class="ring r2"></div>
+          <div class="core"></div>
+        </div>
+        <div class="pr-hint">Take a moment. Let that land.</div>
+      </div>
+      <div class="pr-cta" id="prCta">
+        <button class="btn btn-purple" id="feltIt">I felt it</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SCREEN 4 — Celebration ===== -->
+  <section class="screen" data-screen="celebrate">
+    <div class="celebrate">
+      <div class="halo"></div>
+      <div class="celebrate-eyebrow">Evidence saved</div>
+      <h2>Added to your evidence file.</h2>
+      <div class="big-count" id="celebCount">8 acts of courage</div>
+      <div class="counter-beliefs">
+        Counts against the belief <br />
+        <span class="belief">"I don't belong here."</span>
+      </div>
+      <div class="cta-wrap">
+        <button class="btn btn-blue" id="backHome">Back to my evidence file</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bottom sheet (courage log) — overlays home -->
+  <div class="sheet-backdrop" id="backdrop"></div>
+  <div class="sheet" id="sheet">
+    <div class="sheet-grab"></div>
+    <h3>What happened?</h3>
+    <p class="help">Small counts. Paloma will witness it. Only you will see the file.</p>
+
+    <div class="field-group">
+      <div class="field-label">Tell me what you did <span class="field-opt">Required</span></div>
+      <textarea class="field" id="whatField" rows="2" placeholder="I…"></textarea>
+    </div>
+    <div class="field-group">
+      <div class="field-label">What did it cost you? <span class="field-opt">Optional</span></div>
+      <textarea class="field" id="costField" rows="2" placeholder="What it took to do it…"></textarea>
+    </div>
+    <div class="field-group">
+      <div class="field-label">What does it say about you? <span class="field-opt">Optional</span></div>
+      <textarea class="field" id="sayField" rows="2" placeholder="Only if something's there…"></textarea>
+    </div>
+
+    <button class="btn btn-purple" id="tellPaloma" disabled>Tell Paloma</button>
+    <button class="btn btn-ghost" id="closeSheet" style="margin-top: 10px;">Not now</button>
+  </div>
+
+</div>
+
+<script>
+/* =============================================================
+   PALOMA — prototype logic
+   ============================================================= */
+
+const State = {
+  name: '',
+  signal: '',
+  entries: [
+    {
+      id: 5, type: 'courage-act',
+      body: "Sent the email I'd been drafting for two weeks. Hit send before I could talk myself out of it.",
+      reflect: "You didn't wait until it was perfect. That's the thing you said you never do.",
+      date: "3 days ago"
+    },
+    {
+      id: 4, type: 'belief-shift',
+      body: "Realized I was waiting for permission to take up space in the meeting. Then I stopped waiting.",
+      reflect: "Something shifted in how you see yourself in that room. That's not small.",
+      date: "1 week ago"
+    },
+    {
+      id: 3, type: 'courage-act',
+      body: "Had the conversation with my manager I'd been avoiding for six weeks.",
+      reflect: "Six weeks of avoiding and then you just did it. What does that tell you?",
+      date: "2 weeks ago"
+    },
+    {
+      id: 2, type: 'witnessed',
+      body: "My colleague said she always feels heard when she talks to me. I almost dismissed it.",
+      reflect: "You almost let that slide past. You didn't this time.",
+      date: "3 weeks ago"
+    },
+    {
+      id: 1, type: 'courage-act',
+      body: "Spoke up in the team meeting. I almost didn't.",
+      reflect: "Nobody looked at you like you didn't belong. Actually the opposite.",
+      date: "1 month ago"
+    },
+  ],
+  baseCount: 7, // includes 2 older, unshown
+  filter: 'all',
+  pendingReflect: '',
+  pendingBody: '',
+};
+
+const KIND_LABEL = {
+  'courage-act':  'Courage act',
+  'belief-shift': 'Belief shift',
+  'witnessed':    'Witnessed moment',
+};
+
+/* --------- Screen nav --------- */
+function show(screenName) {
+  document.querySelectorAll('.screen').forEach(s => {
+    if (s.dataset.screen === screenName) {
+      s.classList.remove('leave-left');
+      s.classList.add('active');
+    } else if (s.classList.contains('active')) {
+      s.classList.remove('active');
+      s.classList.add('leave-left');
+      setTimeout(() => s.classList.remove('leave-left'), 400);
+    }
+  });
+}
+
+/* --------- Onboarding 1 --------- */
+const nameField = document.getElementById('nameField');
+const onb1Next = document.getElementById('onb1Next');
+nameField.addEventListener('input', () => {
+  onb1Next.disabled = nameField.value.trim().length === 0;
+});
+onb1Next.addEventListener('click', () => {
+  State.name = nameField.value.trim();
+  // Personalize screen 2 question
+  const q = document.getElementById('onb2Q');
+  q.textContent = `${State.name}, what will tell you this conversation has been helpful?`;
+  show('onb2');
+  setTimeout(() => document.getElementById('signalField').focus(), 450);
+});
+
+/* --------- Onboarding 2 --------- */
+const signalField = document.getElementById('signalField');
+const onb2Next = document.getElementById('onb2Next');
+const reflectCard = document.getElementById('reflectCard');
+const reflectBody = document.getElementById('reflectBody');
+
+let reflectTimer = null;
+signalField.addEventListener('input', () => {
+  const v = signalField.value.trim();
+  if (v.length >= 3) {
+    clearTimeout(reflectTimer);
+    reflectTimer = setTimeout(() => {
+      showOnbReflection(v);
+    }, 700);
+  }
+});
+
+function showOnbReflection(signal) {
+  reflectCard.classList.add('show');
+  const text = `You'll know this is working when you notice that. Not when I say so. I'll watch for it with you.`;
+  typewrite(reflectBody, text, 22, () => {
+    onb2Next.disabled = false;
+    // pre-seed first entry body using their signal
+    document.getElementById('firstEntryBody').textContent =
+      `${State.name ? State.name + ' ' : 'You '}came here to notice when ${signal.replace(/^I\s+/i, '').replace(/\.$/, '')}.`.replace('  ', ' ');
+  });
+}
+
+onb2Next.addEventListener('click', () => {
+  State.signal = signalField.value.trim();
+  show('onb3');
+});
+
+/* --------- Onboarding 3 --------- */
+document.getElementById('onb3Next').addEventListener('click', () => {
+  renderEntries();
+  show('home');
+});
+
+/* --------- Evidence file --------- */
+const entryList = document.getElementById('entryList');
+const filterRow = document.getElementById('filterRow');
+const homeCount = document.getElementById('homeCount');
+
+function renderEntries() {
+  entryList.innerHTML = '';
+  const filtered = State.filter === 'all'
+    ? State.entries
+    : State.entries.filter(e => e.type === State.filter);
+
+  if (filtered.length === 0) {
+    entryList.innerHTML = `<div style="text-align:center;color:var(--text-subtle);padding:40px 0;font-size:14px;">No entries in this view yet.</div>`;
+  }
+
+  filtered.forEach(e => {
+    const el = document.createElement('div');
+    el.className = `entry type-${e.type}`;
+    el.innerHTML = `
+      <div class="entry-meta">
+        <span class="entry-kind">${KIND_LABEL[e.type]}</span>
+        <span class="entry-date">${e.date}</span>
+      </div>
+      <div class="entry-body">${escapeHtml(e.body)}</div>
+      <div class="reflection-toggle">
+        <span>Paloma's reflection</span>
+        <svg class="chev" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5 L7 9 L11 5"/></svg>
+      </div>
+      <div class="entry-reflection">
+        <div class="entry-reflection-inner">
+          ${escapeHtml(e.reflect)}
+          <span class="entry-reflection-by">— Paloma</span>
+        </div>
+      </div>
+    `;
+    el.addEventListener('click', () => el.classList.toggle('expanded'));
+    entryList.appendChild(el);
+  });
+
+  const count = State.baseCount - (5 - State.entries.length) + (State.entries.length - 5);
+  homeCount.textContent = `${State.baseCount} acts of courage`;
+}
+
+filterRow.addEventListener('click', (e) => {
+  const btn = e.target.closest('.filter');
+  if (!btn) return;
+  filterRow.querySelectorAll('.filter').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  State.filter = btn.dataset.filter;
+  renderEntries();
+});
+
+/* --------- Bottom sheet --------- */
+const sheet = document.getElementById('sheet');
+const backdrop = document.getElementById('backdrop');
+const whatField = document.getElementById('whatField');
+const costField = document.getElementById('costField');
+const sayField  = document.getElementById('sayField');
+const tellBtn   = document.getElementById('tellPaloma');
+
+function openSheet() {
+  backdrop.classList.add('show');
+  sheet.classList.add('show');
+  setTimeout(() => whatField.focus(), 300);
+}
+function closeSheet() {
+  backdrop.classList.remove('show');
+  sheet.classList.remove('show');
+}
+document.getElementById('openSheet').addEventListener('click', openSheet);
+document.getElementById('closeSheet').addEventListener('click', closeSheet);
+backdrop.addEventListener('click', closeSheet);
+
+whatField.addEventListener('input', () => {
+  tellBtn.disabled = whatField.value.trim().length < 2;
+});
+
+tellBtn.addEventListener('click', () => {
+  const what = whatField.value.trim();
+  const cost = costField.value.trim();
+  const say  = sayField.value.trim();
+  State.pendingBody = what;
+  State.pendingReflect = craftReflection(what, cost, say);
+  closeSheet();
+  setTimeout(() => playResponse(), 300);
+});
+
+/* A handful of grounded, non-hollow response templates. */
+function craftReflection(what, cost, say) {
+  const pool = [
+    "You named it in your own words. That means you're not waiting to be told what it was.",
+    "You did the thing and then you came here to write it down. Both of those were choices.",
+    "That's a detail only someone who actually did it would know to include.",
+    "It cost something and you did it anyway. Those facts belong next to each other.",
+    "The version of you that would have skipped this — you didn't listen to them today."
+  ];
+  if (cost && say) {
+    return `You knew what it would cost and you told yourself what it would mean. Then you did it anyway. That's three things, not one.`;
+  }
+  if (cost) {
+    return `You said what it cost. You still did it. The cost didn't disqualify you — you just paid it.`;
+  }
+  if (say) {
+    return `You already know what it says about you. I'm just adding it to the file so you can read it back later.`;
+  }
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+/* --------- Paloma response screen --------- */
+const reflectText = document.getElementById('reflectText');
+const breathWrap  = document.getElementById('breathWrap');
+const prCta       = document.getElementById('prCta');
+let ctaTimer = null;
+
+function playResponse() {
+  show('response');
+  reflectText.innerHTML = '<span class="caret"></span>';
+  breathWrap.classList.remove('show');
+  prCta.classList.remove('show');
+  clearTimeout(ctaTimer);
+
+  const text = State.pendingReflect;
+  typewrite(reflectText, text, 34, () => {
+    // Remove caret when done
+    const c = reflectText.querySelector('.caret');
+    if (c) c.remove();
+    // Reveal breath ring
+    setTimeout(() => breathWrap.classList.add('show'), 300);
+    // 5 second enforced pause before CTA
+    ctaTimer = setTimeout(() => prCta.classList.add('show'), 5000);
+  });
+}
+
+document.getElementById('feltIt').addEventListener('click', () => {
+  // Save the entry
+  const type = inferType(State.pendingBody);
+  State.entries.unshift({
+    id: Date.now(),
+    type,
+    body: State.pendingBody,
+    reflect: State.pendingReflect,
+    date: 'Just now',
+  });
+  State.baseCount += 1;
+  document.getElementById('celebCount').textContent = `${State.baseCount} acts of courage`;
+  show('celebrate');
+});
+
+function inferType(body) {
+  const t = body.toLowerCase();
+  if (/(realiz|notic|stopped|saw that|understood|it hit me)/.test(t)) return 'belief-shift';
+  if (/(said|told me|complimented|thanked)/.test(t)) return 'witnessed';
+  return 'courage-act';
+}
+
+/* --------- Celebration --------- */
+document.getElementById('backHome').addEventListener('click', () => {
+  // Clear form
+  whatField.value = ''; costField.value = ''; sayField.value = '';
+  tellBtn.disabled = true;
+  renderEntries();
+  show('home');
+});
+
+/* --------- Utilities --------- */
+function typewrite(el, text, speed, done) {
+  // keep any trailing caret node
+  const caret = el.querySelector('.caret');
+  el.textContent = '';
+  if (caret) el.appendChild(caret);
+  let i = 0;
+  const tick = () => {
+    if (i >= text.length) { if (done) done(); return; }
+    const ch = text[i++];
+    const node = document.createTextNode(ch);
+    if (caret && caret.parentNode === el) {
+      el.insertBefore(node, caret);
+    } else {
+      el.appendChild(node);
+    }
+    // Natural-feeling variable speed; slower at punctuation
+    let delay = speed + Math.random() * speed * 0.6;
+    if (/[,.;!?]/.test(ch)) delay += 220;
+    setTimeout(tick, delay);
+  };
+  tick();
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+/* Initial render */
+renderEntries();
+
+/* Focus name field on load */
+setTimeout(() => nameField.focus(), 400);
+</script>
+</body>
+</html>
