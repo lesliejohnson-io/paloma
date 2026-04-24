@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Paloma — Evidence animation</title>
+<title>Paloma — evidence flow (embed)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
@@ -11,6 +11,14 @@
   html, body { margin: 0; padding: 0; height: 100%; background: #0a0a0a; overflow: hidden; }
   #root { position: absolute; inset: 0; }
   @keyframes palomaBlink { 50% { opacity: 0; } }
+
+  /* Hide the playback bar for embed. The bar is the last direct child of the
+     Stage container. */
+  #root > div > div:last-child {
+    display: none !important;
+  }
+  /* Stage's canvas area uses flex:1; with the bar gone, it will fill the
+     entire viewport. */
 </style>
 </head>
 <body>
@@ -24,9 +32,21 @@
 <script type="text/babel" src="scene.jsx"></script>
 
 <script type="text/babel">
+/* Always start from t=0 for embed — overwrite any persisted playhead so
+   the first frame a Webflow visitor sees is the beginning of the loop. */
+try { localStorage.removeItem('paloma-embed:t'); } catch (e) {}
+
 function App() {
   return (
-    <Stage width={1280} height={720} duration={28} background="#0a0a0a" loop={true}>
+    <Stage
+      width={1280}
+      height={720}
+      duration={28.6}
+      background="#0a0a0a"
+      loop={true}
+      autoplay={true}
+      persistKey="paloma-embed"
+    >
       <PalomaScene/>
     </Stage>
   );
